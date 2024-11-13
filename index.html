@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Dari Backend</title>
+  <style>
+    /* Reset beberapa default margin dan padding */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Styling untuk body */
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    /* Header styling */
+    h1 {
+      text-align: center;
+      color: #2d87f0;
+      margin-bottom: 20px;
+    }
+
+    /* Styling untuk informasi suhu */
+    p {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+    }
+
+    /* Bagian untuk detail suhu dan bulan */
+    div {
+      background-color: #ffffff;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      color: #2d87f0;
+      margin-bottom: 10px;
+    }
+
+    /* Styling untuk data */
+    #nilai_suhu_max_max p,
+    #month_year p {
+      background-color: #e1f5fe;
+      padding: 8px;
+      margin: 5px 0;
+      border-radius: 5px;
+      font-size: 1.1em;
+    }
+
+    /* Styling untuk pesan jika data tidak tersedia */
+    .no-data {
+      color: #ff7043;
+      font-style: italic;
+      font-size: 1.2em;
+    }
+
+    /* Styling untuk responsive */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      div {
+        padding: 15px;
+      }
+
+      p {
+        font-size: 1em;
+      }
+
+      h2 {
+        font-size: 1.3em;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Data Dari Backend</h1>
+
+<p id="suhumax">Suhu Max:</p>
+<p id="suhumin">Suhu Min:</p>
+<p id="suhurata">Suhu Rata-Rata:</p>
+
+<div>
+  <h2>Detail Suhu dan Humiditas Maksimal</h2>
+  <div id="nilai_suhu_max_max"></div>
+</div>
+
+<div>
+  <h2>Bulan dan Tahun Maksimal</h2>
+  <div id="month_year"></div>
+</div>
+
+<script>
+const getBackendData = async () => {
+  try {
+    const resp = await fetch('backend.php');
+    if (!resp.ok) {
+      throw new Error(`HTTP error! Status: ${resp.status}`);
+    }
+    const data = await resp.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+};
+
+document.addEventListener('DOMContentLoaded', async () => {
+  const suhumax = document.getElementById('suhumax');
+  const suhumin = document.getElementById('suhumin');
+  const suhurata = document.getElementById('suhurata');
+  const nilai_suhu_max_max = document.getElementById('nilai_suhu_max_max');
+  const month_year = document.getElementById('month_year');
+
+  const data = await getBackendData();
+  
+  if (data) {
+    suhumax.innerText = `Suhu Max: ${data.suhumax}`;
+    suhumin.innerText = `Suhu Min: ${data.suhumin}`;
+    suhurata.innerText = `Suhu Rata-Rata: ${data.suhurata}`;
+
+    nilai_suhu_max_max.innerHTML = data.nilai_suhu_max_humid_max.map(value => {
+      return `<p>IDX: ${value.idx} | Suhu: ${value.suhun} | Humiditas: ${value.humid} | Kecerahan: ${value.kecerahan} | Waktu: ${value.timestamp}</p>`;
+    }).join('');
+
+    month_year.innerHTML = data.month_year_max.map(value => {
+      const [month, year] = value.month_year.split('-');
+      return `<p>Bulan: ${month} | Tahun: ${year}</p>`;
+    }).join('');
+  } else {
+    suhumax.innerHTML = "<span class='no-data'>Data tidak tersedia</span>";
+    suhumin.innerHTML = "<span class='no-data'>Data tidak tersedia</span>";
+    suhurata.innerHTML = "<span class='no-data'>Data tidak tersedia</span>";
+    nilai_suhu_max_max.innerHTML = "<p class='no-data'>Data tidak tersedia</p>";
+    month_year.innerHTML = "<p class='no-data'>Data tidak tersedia</p>";
+  }
+});
+</script>
+
+</body>
+</html>
